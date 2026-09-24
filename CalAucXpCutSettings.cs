@@ -26,7 +26,7 @@ namespace CalAucXpCut
 
         [SettingPropertyGroup("{=CalAucXpCut_Group_General}General", GroupOrder = 0)]
         [SettingPropertyInteger("{=CalAucXpCut_XpDivisor_Name}XP Divisor", 1, 500, Order = 1, RequireRestart = false,
-            HintText = "{=CalAucXpCut_XpDivisor_Hint}How many times to cut Trade XP from auction sales. 1 = vanilla, 100 = balanced, 500 = almost disabled.")]
+            HintText = "{=CalAucXpCut_XpDivisor_Hint}How many times to cut Trade XP from auction transactions (buying and selling). 1 = vanilla, 100 = balanced, 500 = almost disabled.")]
         public int XpDivisor
         {
             get
@@ -96,15 +96,48 @@ namespace CalAucXpCut
             }
         }
 
-        private bool _verboseLogging = true;
+        private bool _showChatMessages = true;
 
         [SettingPropertyGroup("{=CalAucXpCut_Group_General}General", GroupOrder = 0)]
-        [SettingPropertyBool("{=CalAucXpCut_VerboseLog_Name}Detailed Logging", Order = 4, RequireRestart = false,
-            HintText = "{=CalAucXpCut_VerboseLog_Hint}Write XP events to xp.log and mirror them to the in-game chat. For diagnostics.")]
-        public bool VerboseLogging
+        [SettingPropertyBool("{=CalAucXpCut_ShowChatMessages_Name}Chat Messages", Order = 4, RequireRestart = false,
+            HintText = "{=CalAucXpCut_ShowChatMessages_Hint}Show Trade XP events in the in-game chat.")]
+        public bool ShowChatMessages
         {
-            get { try { return _verboseLogging; } catch { return true; } }
-            set { try { if (_verboseLogging != value) { _verboseLogging = value; OnPropertyChanged(nameof(VerboseLogging)); } } catch { } }
+            get { try { return _showChatMessages; } catch { return true; } }
+            set
+            {
+                try
+                {
+                    if (_showChatMessages != value)
+                    {
+                        _showChatMessages = value;
+                        OnPropertyChanged(nameof(ShowChatMessages));
+                    }
+                }
+                catch { }
+            }
+        }
+
+        private bool _writeXpLog = false;
+
+        [SettingPropertyGroup("{=CalAucXpCut_Group_General}General", GroupOrder = 0)]
+        [SettingPropertyBool("{=CalAucXpCut_WriteXpLog_Name}Write Log File", Order = 5, RequireRestart = false,
+            HintText = "{=CalAucXpCut_WriteXpLog_Hint}Write Trade XP events to xp.log. For diagnostics.")]
+        public bool WriteXpLog
+        {
+            get { try { return _writeXpLog; } catch { return false; } }
+            set
+            {
+                try
+                {
+                    if (_writeXpLog != value)
+                    {
+                        _writeXpLog = value;
+                        OnPropertyChanged(nameof(WriteXpLog));
+                    }
+                }
+                catch { }
+            }
         }
     }
 }

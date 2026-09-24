@@ -85,6 +85,7 @@ namespace CalAucXpCut
             }
         }
 
+        // Always written to errors.log regardless of settings.
         public static void Log(string message)
         {
             try
@@ -96,12 +97,13 @@ namespace CalAucXpCut
             catch { }
         }
 
+        // Diagnostic file log. Gated by settings.WriteXpLog.
         public static void LogXp(string message)
         {
             try
             {
                 var s = CalAucXpCutSettings.Instance;
-                if (s != null && !s.VerboseLogging) return;
+                if (s != null && !s.WriteXpLog) return;
 
                 var p = XpLogPath;
                 if (p == null) return;
@@ -110,14 +112,14 @@ namespace CalAucXpCut
             catch { }
         }
 
-        // Displays a localized message in chat. Key must exist in
-        // ModuleData/Languages/.../std_CalAucXpCut_strings.xml
+        // Player-facing chat message. Gated by settings.ShowChatMessages.
+        // Key must exist in ModuleData/Languages/.../std_CalAucXpCut_strings.xml
         public static void Msg(string key, params (string Name, string Value)[] args)
         {
             try
             {
                 var s = CalAucXpCutSettings.Instance;
-                if (s != null && !s.VerboseLogging) return;
+                if (s != null && !s.ShowChatMessages) return;
 
                 var text = new TextObject("{=" + key + "}");
                 if (args != null)
@@ -154,8 +156,6 @@ namespace CalAucXpCut
                 if (s.FixConsignExploit && CalAucXpCutSubModule.SuppressAwardXp)
                 {
                     CalAucXpCutSubModule.LogXp($"[AwardTradeXp] SUPPRESS (consign) denars={denars}");
-                    CalAucXpCutSubModule.Msg("CalAucXpCut_Msg_Suppress",
-                        ("DENARS", denars.ToString()));
                     denars = 0;
                     return;
                 }
@@ -171,11 +171,11 @@ namespace CalAucXpCut
 
                 denars = res;
 
-                CalAucXpCutSubModule.LogXp($"[AwardTradeXp] {orig} -> {res} (divisor={divisor})");
+                float xp = res * 0.05f;
+
+                CalAucXpCutSubModule.LogXp($"[AwardTradeXp] {orig} -> {res} (divisor={divisor}) -> +{xp:F2} XP");
                 CalAucXpCutSubModule.Msg("CalAucXpCut_Msg_AwardTradeXp",
-                    ("ORIG", orig.ToString()),
-                    ("RES", res.ToString()),
-                    ("DIVISOR", divisor.ToString()));
+                    ("XP", xp.ToString("F1")));
             }
             catch (Exception ex)
             {
@@ -253,7 +253,7 @@ namespace CalAucXpCut
 
                 if (!isPlayerConsigned) return;
 
-                float feeRate = GetConsignmentFeeRate();
+                float feeRate = AuctionConfig.ConsignmentFeeRate;
                 int payout = (int)((float)hammerPrice * (1f - feeRate));
                 if (payout <= 0) return;
 
@@ -270,30 +270,12 @@ namespace CalAucXpCut
 
                 CalAucXpCutSubModule.LogXp($"  AWARD: hammer={hammerPrice}, payout={payout}, div={divisor}, effective={effective}, baseXp={xpToAdd:F2}");
                 CalAucXpCutSubModule.Msg("CalAucXpCut_Msg_ConsignSold",
-                    ("XP", xpToAdd.ToString("F1")),
-                    ("HAMMER", hammerPrice.ToString()),
-                    ("DIVISOR", divisor.ToString()));
+                    ("XP", xpToAdd.ToString("F1")));
             }
             catch (Exception ex)
             {
                 CalAucXpCutSubModule.Log("PayConsignor.Postfix: " + ex.Message);
             }
-        }
-
-        private static float GetConsignmentFeeRate()
-        {
-            try
-            {
-                var f = typeof(AuctionConfig).GetField("ConsignmentFeeRate",
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                if (f != null)
-                {
-                    object v = f.GetValue(null);
-                    if (v is float fl) return fl;
-                }
-            }
-            catch { }
-            return 0.22f;
         }
     }
 
