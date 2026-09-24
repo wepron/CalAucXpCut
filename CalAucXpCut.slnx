@@ -1,0 +1,9 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="CalAucXpCut.csproj" Id="cb85e0f4-1114-48af-94bd-1f5ad3c90804">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
+</Solution>
